@@ -14,6 +14,10 @@ public class Draggable : MonoBehaviour
         // Fare ile objenin merkezi arasýndaki fark (Zýplama yapmamasý için)
         offset = transform.position - GetMouseWorldPos();
         isDragging = true;
+
+         // Bloðu tutunca orijinal boyutuna (1.0) getir
+         transform.localScale = Vector3.one;
+        
     }
 
     void OnMouseDrag()

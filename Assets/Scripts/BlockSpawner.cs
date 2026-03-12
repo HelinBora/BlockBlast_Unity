@@ -20,8 +20,7 @@ public class BlockSpawner : MonoBehaviour
             // Bloðu slotun tam üzerinde oluþturalým
             GameObject newBlock = Instantiate(blockPrefabs[randomIndex], slot.position, Quaternion.identity);
 
-            // Bloðu biraz küçültelim
-            newBlock.transform.localScale = Vector3.one * 0.6f;
+            newBlock.transform.localScale = Vector3.one * 1.0f;
         }
     }
 }
