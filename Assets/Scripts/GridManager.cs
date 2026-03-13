@@ -60,6 +60,10 @@ public class GridManager : MonoBehaviour
             gridMatrix[x, y] = tile.gameObject;
         }
         CheckForFullLines(); // Blok konunca satýr doldu mu diye bak
+        
+        // ÞÝMDÝ KONTROL ET (Yer açýldýktan sonra)
+        BlockSpawner spawner = FindFirstObjectByType<BlockSpawner>();
+        spawner.CheckGameOver();
     }
 
     private void CheckForFullLines()
@@ -117,4 +121,46 @@ public class GridManager : MonoBehaviour
         Debug.Log("Aþko, SATIR patladý! +100 Puan");
     }
 
+    public bool CanAnyBlockFit(List<GameObject> activeBlocks)
+    {
+        foreach (GameObject block in activeBlocks)
+        {
+            // Bloðun içindeki küçük kareleri al
+            List<Transform> tiles = new List<Transform>();
+            foreach (Transform t in block.transform) tiles.Add(t);
+
+            // Izgaradaki her bir hücreyi (x, y) baþlangýç noktasý olarak dene
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    if (CanFitAt(tiles, x, y)) return true; // Tek bir yer bile bulsa yeter!
+                }
+            }
+        }
+        return false; // Hiçbir blok hiçbir yere sýðmýyor :(
+    }
+
+    // Belirli bir x,y koordinatýna bloðun sýðýp sýðmadýðýný kontrol eden yardýmcý fonksiyon
+    private bool CanFitAt(List<Transform> tiles, int targetX, int targetY)
+    {
+        Vector3 firstTilePos = tiles[0].localPosition;
+
+        foreach (Transform tile in tiles)
+        {
+            // 1.1 yerine 1.1f kullanarak float hassasiyetini koruyalým
+            int diffX = Mathf.RoundToInt((tile.position.x - firstTilePos.x) / 1.1f);
+            int diffY = Mathf.RoundToInt((tile.position.y - firstTilePos.y) / 1.1f);
+
+            int checkX = targetX + diffX;
+            int checkY = targetY + diffY;
+
+            // Izgara sýnýrlarý ve doluluk kontrolü
+            if (checkX < 0 || checkX >= 8 || checkY < 0 || checkY >= 8 || gridMatrix[checkX, checkY] != null)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }

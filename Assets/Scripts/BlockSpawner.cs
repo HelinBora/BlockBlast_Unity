@@ -17,18 +17,28 @@ public class BlockSpawner : MonoBehaviour
             int randomIndex = Random.Range(0, blockPrefabs.Count);
             GameObject newBlock = Instantiate(blockPrefabs[randomIndex], slot.position, Quaternion.identity);
             newBlock.transform.localScale = Vector3.one * 0.8f;
-
-            activeBlocks.Add(newBlock); // Bloðu listeye ekle
+            activeBlocks.Add(newBlock);
         }
+     
+        CheckGameOver();
     }
-
     // Bir blok yerleþtiðinde listeden çýkar ve liste boþsa yeni turu baþlat
     public void BlockPlaced(GameObject block)
     {
         activeBlocks.Remove(block);
+
         if (activeBlocks.Count == 0)
         {
             SpawnNewRound();
+        }
+    }
+
+    public void CheckGameOver()
+    {
+        GridManager gridManager = FindFirstObjectByType<GridManager>();
+        if (activeBlocks.Count > 0 && !gridManager.CanAnyBlockFit(activeBlocks))
+        {
+            Debug.LogError("OYUN BÝTTÝ AÞKO! Hiçbir hamle sýðmýyor.");
         }
     }
 }
