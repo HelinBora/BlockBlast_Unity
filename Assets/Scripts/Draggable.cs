@@ -1,10 +1,17 @@
 using UnityEngine;
 
+
 public class Draggable : MonoBehaviour
 {
+    private BlockSpawner spawner;
     private Vector3 offset;
     private Vector3 startPosition;
     private bool isDragging = false;
+
+    void Start()
+    {
+        spawner = FindFirstObjectByType<BlockSpawner>(); // Spawner'ý otomatik bulur
+    }
 
     void OnMouseDown()
     {
@@ -34,25 +41,20 @@ public class Draggable : MonoBehaviour
 
     private void SnapToGrid()
     {
-        //Spacing deðeriyle ayný olmalý (1.1f)
         float snapValue = 1.1f;
-
-        // Mevcut pozisyonu en yakýn 1.1'in katýna yuvarla
-        // Formül: Round(Konum / Aralýk) * Aralýk
         float x = Mathf.Round(transform.position.x / snapValue) * snapValue;
         float y = Mathf.Round(transform.position.y / snapValue) * snapValue;
 
-        // Izgara sýnýrlarýný kontrol et (0 ile 7*1.1 arasý)
-        // Eðer blok ýzgaranýn çok dýþýndaysa eski yerine dönsün
-        if (x >= -0.5f && x < 8 * snapValue && y >= -0.5f && y < 8 * snapValue)
+        // Izgara sýnýrlarý kontrolü 
+        if (x >= 0 && x < 8 * snapValue && y >= 0 && y < 8 * snapValue)
         {
             transform.position = new Vector3(x, y, 0);
-            Debug.Log("Izgaraya baþarýyla oturdu: " + x + ", " + y);
+            this.enabled = false; // Yerleþen blok bir daha sürüklenebilir olmasýn
+            spawner.BlockPlaced(this.gameObject); // Spawner'a haber ver
         }
         else
         {
-            transform.position = startPosition;
-            Debug.Log("Izgara dýþý! Eski konuma dönüldü.");
+            transform.position = startPosition; // Izgara dýþýysa eski yerine dön
         }
     }
 

@@ -3,24 +3,32 @@ using System.Collections.Generic;
 
 public class BlockSpawner : MonoBehaviour
 {
-    public List<GameObject> blockPrefabs; // Eldeki L, T, I, Kare prefablarýný buraya sürükleyeceðiz
-    public Transform[] spawnSlots;        // Oluþturduðum 3 boþ slotu buraya atayacaðým
+    public List<GameObject> blockPrefabs;
+    public Transform[] spawnSlots;
+    private List<GameObject> activeBlocks = new List<GameObject>(); // Sahnedeki bloklarý tutar
 
-    void Start()
-    {
-        SpawnNewNewRound();
-    }
+    void Start() { SpawnNewRound(); }
 
-    public void SpawnNewNewRound()
+    public void SpawnNewRound()
     {
-        // 3 slotun her biri için rastgele bir blok üretelim
+        activeBlocks.Clear();
         foreach (Transform slot in spawnSlots)
         {
             int randomIndex = Random.Range(0, blockPrefabs.Count);
-            // Bloðu slotun tam üzerinde oluþturalým
             GameObject newBlock = Instantiate(blockPrefabs[randomIndex], slot.position, Quaternion.identity);
+            newBlock.transform.localScale = Vector3.one * 0.8f;
 
-            newBlock.transform.localScale = Vector3.one * 1.0f;
+            activeBlocks.Add(newBlock); // Bloðu listeye ekle
+        }
+    }
+
+    // Bir blok yerleþtiðinde listeden çýkar ve liste boþsa yeni turu baþlat
+    public void BlockPlaced(GameObject block)
+    {
+        activeBlocks.Remove(block);
+        if (activeBlocks.Count == 0)
+        {
+            SpawnNewRound();
         }
     }
 }
