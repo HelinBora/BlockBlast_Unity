@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections.Generic;
 
 public class Draggable : MonoBehaviour
 {
@@ -42,19 +42,27 @@ public class Draggable : MonoBehaviour
     private void SnapToGrid()
     {
         float snapValue = 1.1f;
-        float x = Mathf.Round(transform.position.x / snapValue) * snapValue;
-        float y = Mathf.Round(transform.position.y / snapValue) * snapValue;
+        // Bloðun içindeki tüm küçük kareleri (child) bir listeye alalým
+        List<Transform> children = new List<Transform>();
+        foreach (Transform child in transform) { children.Add(child); }
 
-        // Izgara sýnýrlarý kontrolü 
-        if (x >= 0 && x < 8 * snapValue && y >= 0 && y < 8 * snapValue)
+        GridManager gridManager = FindFirstObjectByType<GridManager>();
+
+        // Eðer yer müsaitse ve ýzgara sýnýrlarýndaysa yerleþtir
+        if (gridManager.CanPlaceBlock(children))
         {
+            float x = Mathf.Round(transform.position.x / snapValue) * snapValue;
+            float y = Mathf.Round(transform.position.y / snapValue) * snapValue;
             transform.position = new Vector3(x, y, 0);
-            this.enabled = false; // Yerleþen blok bir daha sürüklenebilir olmasýn
-            spawner.BlockPlaced(this.gameObject); // Spawner'a haber ver
+
+            gridManager.PlaceBlockOnGrid(children); // Matrise kaydet
+            this.enabled = false;
+            spawner.BlockPlaced(this.gameObject);
         }
         else
         {
-            transform.position = startPosition; // Izgara dýþýysa eski yerine dön
+            // Yer doluysa veya dýþarýdaysa týpýþ týpýþ eski yerine dön
+            transform.position = startPosition;
         }
     }
 
