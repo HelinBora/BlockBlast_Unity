@@ -33,39 +33,37 @@ public class GridManager : MonoBehaviour
     public GameObject[,] gridMatrix = new GameObject[8, 8];
 
     // Bir bloðun yerleþip yerleþemeyeceðini kontrol eden fonksiyon
+    // Bir bloðun yerleþip yerleþemeyeceðini kontrol eden fonksiyon (GÜNCELLENDÝ)
     public bool CanPlaceBlock(List<Transform> blockTiles)
     {
         foreach (Transform tile in blockTiles)
         {
-            // Bloðun her bir karesinin koordinatlarýný 1.1'e bölerek matris indeksini buluyoruz
-            int x = Mathf.RoundToInt(tile.position.x / 1.1f);
-            int y = Mathf.RoundToInt(tile.position.y / 1.1f);
+            // ARTIK BURADA DA GÜVENLÝ HELPER'I KULLANIYORUZ
+            Vector2Int index = GetGridIndex(tile.position);
+            int x = index.x;
+            int y = index.y;
 
             // Sýnýr kontrolü ve doluluk kontrolü
             if (x < 0 || x >= 8 || y < 0 || y >= 8 || gridMatrix[x, y] != null)
             {
-                return false; // Eðer dýþarýdaysa veya yer doluysa koyamazsýn
+                return false;
             }
         }
         return true;
     }
-
     // Bloðu matrise kaydet
     public void PlaceBlockOnGrid(List<Transform> blockTiles)
     {
         foreach (Transform tile in blockTiles)
         {
-            int x = Mathf.RoundToInt(tile.position.x / 1.1f);
-            int y = Mathf.RoundToInt(tile.position.y / 1.1f);
-            gridMatrix[x, y] = tile.gameObject;
+            Vector2Int index = GetGridIndex(tile.position); // Yeni helper'ý kullanacaðýz
+            gridMatrix[index.x, index.y] = tile.gameObject;
         }
-        CheckForFullLines(); // Blok konunca satýr doldu mu diye bak
-        
-        // ÞÝMDÝ KONTROL ET (Yer açýldýktan sonra)
-        BlockSpawner spawner = FindFirstObjectByType<BlockSpawner>();
-        spawner.CheckGameOver();
-    }
+        CheckForFullLines();
 
+        // Spawner'a haber ver ki satýrlar temizlendikten sonra kontrol etsin
+        FindFirstObjectByType<BlockSpawner>().CheckGameOver();
+    }
     private void CheckForFullLines()
     {
         List<int> fullRows = new List<int>();
@@ -123,44 +121,72 @@ public class GridManager : MonoBehaviour
 
     public bool CanAnyBlockFit(List<GameObject> activeBlocks)
     {
-        foreach (GameObject block in activeBlocks)
+        foreach (GameObject blockObj in activeBlocks)
         {
-            // Bloðun içindeki küçük kareleri al
-            List<Transform> tiles = new List<Transform>();
-            foreach (Transform t in block.transform) tiles.Add(t);
+            if (blockObj == null) continue; // Ölü objeleri geç
 
-            // Izgaradaki her bir hücreyi (x, y) baþlangýç noktasý olarak dene
-            for (int x = 0; x < 8; x++)
+            Block blockData = blockObj.GetComponent<Block>();
+
+            // --- GÜVENLÝK DUVARI ---
+            if (blockData == null)
             {
-                for (int y = 0; y < 8; y++)
+                Debug.LogError(blockObj.name + " üzerinde 'Block' scripti eksik aþko! Hemen takmalýsýn.");
+                continue; // Eðer script yoksa bu bloðu tarama, hata verme
+            }
+            // -----------------------
+
+            for (int gridX = 0; gridX < 8; gridX++)
+            {
+                for (int gridY = 0; gridY < 8; gridY++)
                 {
-                    if (CanFitAt(tiles, x, y)) return true; // Tek bir yer bile bulsa yeter!
+                    if (CanFitAt(blockData.relativeIndices, gridX, gridY))
+                    {
+                        return true;
+                    }
                 }
             }
         }
-        return false; // Hiçbir blok hiçbir yere sýðmýyor :(
+        return false;
+    }    // Dünyadaki koordinatý ýzgara indeksine (0-7) çeviren yöntem
+    public Vector2Int GetGridIndex(Vector3 worldPos)
+    {
+        // Izgaranýn kendi pozisyonunu hesaptan çýkarýyoruz (Offset düzeltme)
+        Vector3 localPos = worldPos - transform.position;
+
+        int x = Mathf.RoundToInt(localPos.x / 1.1f);
+        int y = Mathf.RoundToInt(localPos.y / 1.1f);
+
+        return new Vector2Int(x, y);
     }
 
-    // Belirli bir x,y koordinatýna bloðun sýðýp sýðmadýðýný kontrol eden yardýmcý fonksiyon
-    private bool CanFitAt(List<Transform> tiles, int targetX, int targetY)
+    private bool CanFitAt(List<Vector2Int> shapePattern, int startX, int startY)
     {
-        Vector3 firstTilePos = tiles[0].localPosition;
-
-        foreach (Transform tile in tiles)
+        foreach (Vector2Int offset in shapePattern)
         {
-            // 1.1 yerine 1.1f kullanarak float hassasiyetini koruyalým
-            int diffX = Mathf.RoundToInt((tile.position.x - firstTilePos.x) / 1.1f);
-            int diffY = Mathf.RoundToInt((tile.position.y - firstTilePos.y) / 1.1f);
+            int checkX = startX + offset.x;
+            int checkY = startY + offset.y;
 
-            int checkX = targetX + diffX;
-            int checkY = targetY + diffY;
-
-            // Izgara sýnýrlarý ve doluluk kontrolü
+            // Izgara sýnýrlarý dýþý veya hücre zaten doluysa direkt false dön
             if (checkX < 0 || checkX >= 8 || checkY < 0 || checkY >= 8 || gridMatrix[checkX, checkY] != null)
             {
                 return false;
             }
         }
         return true;
+    }
+    void OnDrawGizmos()
+    {
+        if (gridMatrix == null) return;
+
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                // Eðer hücre doluysa kýrmýzý, boþsa yeþil bir küre çiz
+                Gizmos.color = gridMatrix[x, y] != null ? Color.red : Color.green;
+                Vector3 pos = new Vector3(x * 1.1f, y * 1.1f, 0) + transform.position;
+                Gizmos.DrawSphere(pos, 0.2f);
+            }
+        }
     }
 }

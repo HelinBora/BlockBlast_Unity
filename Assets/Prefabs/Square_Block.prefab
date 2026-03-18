@@ -284,6 +284,7 @@ GameObject:
   - component: {fileID: 354667038314706652}
   - component: {fileID: 3656365695875655828}
   - component: {fileID: -4756513243349707529}
+  - component: {fileID: 2341456807984177302}
   m_Layer: 0
   m_Name: Square_Block
   m_TagString: Untagged
@@ -368,6 +369,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a12821114c657aa42888bc6e2bea9b95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draggable
+--- !u!114 &2341456807984177302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7726522803706934854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e1620b026829484c8aa17a393913f9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Block
+  relativeIndices: []
 --- !u!1 &8883643862946486005
 GameObject:
   m_ObjectHideFlags: 0

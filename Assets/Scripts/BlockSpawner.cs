@@ -36,6 +36,8 @@ public class BlockSpawner : MonoBehaviour
     public void CheckGameOver()
     {
         GridManager gridManager = FindFirstObjectByType<GridManager>();
+        Debug.Log("Game Over kontrolü yapýlýyor. Kalan blok sayýsý: " + activeBlocks.Count);
+
         if (activeBlocks.Count > 0 && !gridManager.CanAnyBlockFit(activeBlocks))
         {
             Debug.LogError("OYUN BÝTTÝ AÞKO! Hiçbir hamle sýðmýyor.");
